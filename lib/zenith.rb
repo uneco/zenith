@@ -115,6 +115,8 @@ module Zenith
     end
 
     def dependency_names(node = nil)
+      return [] if !@parsed
+
       node ||= @parsed
       deps = []
 
