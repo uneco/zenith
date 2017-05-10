@@ -6,11 +6,12 @@ require 'tsort'
 
 module Zenith
   class TemplateBuilder
-    TEMPLATE_EXT = '.yml.erb'.freeze
+    DEFAULT_TEMPLATE_EXT = '.yml.erb'.freeze
 
-    def initialize(base_dir: '.', main_file_name: 'main', erb: true)
+    def initialize(base_dir: '.', main_file_name: 'main', ext: DEFAULT_TEMPLATE_EXT, erb: true)
       @base_dir = Pathname.new(base_dir)
       @main_file_name = main_file_name
+      @ext = ext.gsub(/^\.*/, '.')
       @erb = erb
       @partial_cache = {}
     end
@@ -29,11 +30,11 @@ module Zenith
       builder = self
 
       resolver = PartialResolver.new(@partial_cache) do |name|
-        path = @base_dir.join("_#{name}#{TEMPLATE_EXT}").to_s
+        path = @base_dir.join("_#{name}#{@ext}").to_s
         builder.load_template(path)
       end
 
-      Pathname.glob(@base_dir.join("_*#{TEMPLATE_EXT}")).map do |path|
+      Pathname.glob(@base_dir.join("_*#{@ext}")).map do |path|
         name = File.basename(path).scan(/^_([^.]+)\./).flatten.first
         resolver.resolve(name)
       end
@@ -54,7 +55,7 @@ module Zenith
     end
 
     def main_file_path
-      @base_dir.join("#{@main_file_name}#{TEMPLATE_EXT}")
+      @base_dir.join("#{@main_file_name}#{@ext}")
     end
 
     def full_template
